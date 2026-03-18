@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAP</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#000000">
+
+    <style>
+        /* CSS Cơ bản và Tối ưu Mobile */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        #app-container {
+            width: 100%;
+            max-width: 480px; 
+            height: 100vh;
+            max-height: 900px;
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        /* --- GIAO DIỆN 1: MỞ ĐẦU --- */
+        #view-intro {
+            position: relative;
+            height: 100%;
+            width: 100%;
+            background-color: #000; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #view-intro img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+        }
+
+        @keyframes blinkEffect {
+            0% { opacity: 1; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.6; transform: translateX(-50%) scale(0.95); }
+            100% { opacity: 1; transform: translateX(-50%) scale(1); }
+        }
+
+        .btn-confirm {
+            position: absolute;
+            bottom: 4%; 
+            left: 50%;
+            transform: translateX(-50%);
+            border: 3px solid #FFD700; 
+            background-color: #007BFF; 
+            color: #ffffff; 
+            padding: 12px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            text-transform: uppercase;
+            box-shadow: 0 4px 15px rgba(0, 123, 255, 0.5);
+            animation: blinkEffect 1.2s infinite; 
+            z-index: 10;
+        }
+
+        /* --- GIAO DIỆN 2: CHỌN BLOCK --- */
+        #view-selection {
+            display: none; 
+            height: 100%;
+            width: 100%;
+            background: #f8f9fa;
+            flex-direction: column;
+            justify-content: flex-start; /* Cho phép cuộn từ trên xuống */
+            align-items: center; 
+            padding: 30px 20px;
+            box-sizing: border-box;
+            overflow-y: auto; 
+        }
+
+        /* LOGO: Nằm ngoài viền vàng, to gấp 3 lần */
+        .selection-logo {
+            width: 100%;
+            max-width: 540px; /* Phóng to logo */
+            height: auto;
+            margin-bottom: 20px; 
+            display: block;
+        }
+
+        .selection-content {
+            width: 100%;
+            border: 4px solid #FF8C00; 
+            border-radius: 20px;
+            padding: 20px 15px;
+            box-sizing: border-box;
+            background: #ffffff;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .selection-title {
+            text-align: center;
+            color: #333;
+            font-size: 26px;
+            font-weight: 800;
+            margin-top: 0;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
+        }
+
+        .block-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        .btn-block {
+            background-color: #007BFF; 
+            border: 2px solid #FFD700; 
+            color: #ffffff; 
+            padding: 16px 0;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+            transition: all 0.2s;
+        }
+        .btn-block:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+        }
+
+        /* --- GIAO DIỆN 3: HIỂN THỊ ẢNH --- */
+        #view-display {
+            display: none; 
+            position: relative;
+            height: 100%;
+            width: 100%;
+            background-color: #000; 
+        }
+
+        .display-image-container {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .display-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain; 
+        }
+
+        .display-controls {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 16.66%; 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            padding: 15px 20px 5px 20px;
+            box-sizing: border-box;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.7), rgba(0,0,0,0)); 
+            z-index: 10;
+        }
+
+        .action-btn {
+            display: block;
+            text-align: center;
+            text-decoration: none;
+            padding: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            background-color: #ffffff; 
+            border: 2px solid #FFD700; 
+            color: #007BFF; 
+            cursor: pointer;
+            transition: opacity 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            margin-bottom: 5px;
+        }
+
+        .action-btn:active { opacity: 0.7; transform: scale(0.98); }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <div id="view-intro">
+        <img src="https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/MODAU.gif" alt="Ảnh Mở Đầu">
+        <button class="btn-confirm" onclick="showSelectionView()">Xác nhận</button>
+    </div>
+
+    <div id="view-selection">
+        <img src="https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/ef0711e6e617aea04972ec6495234d0ee882c8e4/logopa.gif" class="selection-logo" alt="Logo PA">
+        
+        <div class="selection-content">
+            <h1 class="selection-title">CHỌN BLOCK</h1>
+            <div class="block-grid" id="block-buttons-container">
+            </div>
+        </div>
+    </div>
+
+    <div id="view-display">
+        <div class="display-controls">
+            <a href="tel:0329725379" class="action-btn">📞 CSKH tại Cảng: 0329725379</a>
+            <a href="tel:0337682239" class="action-btn">🛡️ An Ninh Cảng: 0337682239</a>
+            <button class="action-btn" onclick="showSelectionView()">🔙 Chọn lại block</button>
+        </div>
+        <div class="display-image-container">
+            <img id="block-image" src="" alt="Ảnh Block">
+        </div>
+    </div>
+
+</div>
+
+<script>
+    const blockData = {
+        "1C": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/1C.gif",
+        "1D": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/1D.gif",
+        "1E": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/1E.gif",
+        "1F": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/1F.gif",
+        "1G": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/1G.gif",
+        "2B": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/2B.gif",
+        "2C": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/2C.gif",
+        "2D": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/2D.gif",
+        "2E": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/2E.gif",
+        "3C": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/3C.gif",
+        "3D": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/3D.gif",
+        "3E": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/3E.gif",
+        "3F": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/3F.gif",
+        "3G": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/3G.gif",
+        "3H": "https://raw.githubusercontent.com/tanamedi4-cloud/MAPPORTT/8a01a11a6e6937e001416d2a2375b7a559f4cb4b/3H.gif"
+    };
+
+    // --- CẤU HÌNH LINK GOOGLE FORM HOÀN CHỈNH ---
+    const FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeHW1wcO3sQABN7CeG1QcsTrOe8HT2E855admuSkFUyZXYk7A/formResponse";
+    const FORM_ENTRY = "entry.1945523986";
+
+    // Hàm gửi dữ liệu ngầm lên Google Form
+    function sendToGoogleForm(blockName) {
+        const formData = new FormData();
+        formData.append(FORM_ENTRY, blockName);
+
+        fetch(FORM_ACTION_URL, {
+            method: 'POST',
+            mode: 'no-cors',
+            body: formData
+        }).catch(err => console.log("Lỗi gửi form:", err));
+    }
+
+    function initBlocks() {
+        const container = document.getElementById('block-buttons-container');
+        for (const [blockName, imgUrl] of Object.entries(blockData)) {
+            const btn = document.createElement('button');
+            btn.className = 'btn-block';
+            btn.textContent = blockName;
+            
+            // LẬP TỨC GỬI VÀO FORM VÀ HIỂN THỊ ẢNH KHI CLICK
+            btn.onclick = () => {
+                sendToGoogleForm(blockName);
+                showDisplayView(imgUrl);
+            };
+            
+            container.appendChild(btn);
+        }
+    }
+
+    const viewIntro = document.getElementById('view-intro');
+    const viewSelection = document.getElementById('view-selection');
+    const viewDisplay = document.getElementById('view-display');
+
+    function showSelectionView() {
+        // --- ĐOẠN MÃ MỚI: Yêu cầu mở Fullscreen (Tràn viền) ---
+        let elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen().catch(err => console.log(err));
+        } else if (elem.webkitRequestFullscreen) { /* Dành cho Safari */
+            elem.webkitRequestFullscreen().catch(err => console.log(err));
+        }
+        // --------------------------------------------------------
+
+        viewIntro.style.display = 'none';
+        viewDisplay.style.display = 'none';
+        viewSelection.style.display = 'flex'; 
+    }
+
+    function showDisplayView(imgUrl) {
+        document.getElementById('block-image').src = imgUrl;
+        viewIntro.style.display = 'none';
+        viewSelection.style.display = 'none';
+        viewDisplay.style.display = 'block'; 
+    }
+
+    window.onload = initBlocks;
+</script>
+
+</body>
+</html>
