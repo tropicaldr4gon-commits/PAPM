@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trạm Tác Chiến Tiếng Anh - Thành</title>
+    <style>
+        :root {
+            --bg: #000000;        
+            --surface: #0a0a0a;   
+            --primary: #00ff00;   /* Xanh lá đặc trưng */
+            --accent: #00ff00;    
+            --danger: #ff0000;    
+            --text: #00ff00;      
+            --text-dim: #004400;  
+            --border-radius: 4px; /* Góc nhọn hơn cho cảm giác kỹ thuật */
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace; /* Font chữ dạng mã code */
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            max-width: 500px;
+            width: 100%;
+            background: var(--surface);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.1);
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 1px solid var(--primary);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        h2 {
+            margin: 0;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            font-size: 1.4rem;
+            text-shadow: 0 0 5px var(--primary);
+        }
+
+        /* Bảng Chỉ Thị Tác Chiến */
+        .mission-box {
+            background: #050a05;
+            border: 1px solid var(--accent);
+            border-left: 5px solid var(--accent);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 25px;
+        }
+
+        .mission-month {
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: bold;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .mission-week-content {
+            font-size: 1.1rem;
+            color: var(--primary);
+            font-weight: bold;
+            line-height: 1.4;
+        }
+
+        /* Đồng hồ 48H */
+        .countdown-box {
+            text-align: center;
+            background: #000;
+            border: 1px solid var(--accent);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+        }
+
+        .countdown-timer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            letter-spacing: 3px;
+            text-shadow: 0 0 10px var(--primary);
+        }
+
+        /* Cảnh báo */
+        .warning-marquee {
+            display: none;
+            width: 100%;
+            height: 50px;
+            background: #1a0000;
+            border: 1px solid var(--danger);
+            border-radius: var(--border-radius);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .warning-text {
+            position: absolute;
+            line-height: 46px;
+            color: var(--danger);
+            font-size: 1.5rem;
+            font-weight: 900;
+            white-space: nowrap;
+            animation: bounce 1s linear infinite alternate;
+        }
+
+        @keyframes bounce {
+            0% { left: 0; transform: translateX(0); }
+            100% { left: 100%; transform: translateX(-100%); }
+        }
+
+        /* Thanh Tiến Độ */
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            margin-bottom: 8px;
+            color: var(--text);
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .progress-bar-bg {
+            background: #001100;
+            border-radius: 0px;
+            height: 6px;
+            width: 100%;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid var(--text-dim);
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: var(--accent);
+            box-shadow: 0 0 10px var(--accent);
+            transition: width 0.5s ease;
+        }
+
+        /* Nhiệm Vụ Cụ Thể */
+        .task-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .task-item {
+            background-color: #000;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            cursor: pointer;
+            border: 1px solid var(--text-dim);
+            transition: 0.3s;
+        }
+
+        .task-item.disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .task-item:not(.disabled):hover { border-color: var(--accent); box-shadow: 0 0 10px rgba(0, 255, 0, 0.2); }
+        
+        .task-item.completed {
+            border-color: var(--accent);
+            background: #051a05;
+        }
+
+        .task-item.completed .task-desc { color: #006600; text-decoration: line-through; }
+
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent);
+            cursor: pointer;
+            margin-top: 2px;
+            flex-shrink: 0;
+            background: #000;
+            border: 1px solid var(--accent);
+        }
+
+        .task-content { flex: 1; }
+        .task-title { font-weight: bold; color: var(--text); margin-bottom: 6px; font-size: 0.95rem; text-transform: uppercase; }
+        .task-desc { font-size: 0.85rem; color: var(--text); opacity: 0.8; line-height: 1.5; }
+
+        /* Nút Bấm Chính */
+        .btn-main {
+            background-color: var(--bg);
+            color: var(--text-dim);
+            border: 1px solid var(--text-dim); 
+            padding: 15px;
+            width: 100%;
+            font-size: 1.1rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            border-radius: var(--border-radius);
+            cursor: not-allowed;
+            text-transform: uppercase;
+            transition: all 0.3s;
+        }
+
+        .btn-main.ready {
+            border-color: var(--accent);
+            color: var(--accent);
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+        }
+
+        .btn-main.ready:hover {
+            background-color: var(--accent);
+            color: var(--bg);
+        }
+
+        /* Modal Kiểm Tra */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: var(--bg);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--accent);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 30px var(--accent);
+        }
+
+        .modal-content h3 { color: var(--accent); margin-top: 0; letter-spacing: 2px; }
+        .modal-content p { color: var(--text); font-size: 0.95rem; line-height: 1.6; text-align: left;}
+        
+        .test-checklist {
+            text-align: left; margin: 20px 0; padding-left: 20px; color: var(--text); line-height: 1.8;
+        }
+
+        .btn-pass {
+            background: var(--bg);
+            color: var(--accent);
+            font-weight: bold; 
+            border: 1px solid var(--accent);
+            padding: 15px; 
+            border-radius: var(--border-radius); 
+            cursor: pointer;
+            width: 100%; 
+            font-size: 1rem;
+            margin-top: 15px;
+            text-transform: uppercase;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .btn-pass:hover {
+            background: var(--accent);
+            color: var(--bg);
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header">
+        <h2>ENGLISH COMMAND CENTER</h2>
+    </div>
+
+    <div class="mission-box">
+        <div class="mission-month" id="dispMonthTitle">THÁNG 1</div>
+        <div class="mission-week-content" id="dispWeekContent">Nội dung bài học...</div>
+    </div>
+
+    <div class="warning-marquee" id="warningBox">
+        <div class="warning-text">MISSION FAILED - TRUY CẬP BỊ TỪ CHỐI !!!</div>
+    </div>
+
+    <div class="countdown-box">
+        <div style="font-size: 0.7rem; color: var(--text-dim); margin-bottom: 5px; text-transform: uppercase; font-weight: bold;">Thời gian khả dụng còn lại</div>
+        <div class="countdown-timer" id="timerDisplay">48:00:00</div>
+    </div>
+
+    <div class="progress-label"><span>Năng lượng ngày</span> <span id="lblEnergy">0%</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="barEnergy"></div></div>
+
+    <div class="progress-label"><span>Tiến độ Tuần (<span id="lblDay">1</span>/7)</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="barWeek"></div></div>
+
+    <div class="progress-label"><span>Tiến độ Tháng (<span id="lblWeek">1</span>/4)</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="barMonth"></div></div>
+
+    <div class="task-list">
+        <label class="task-item disabled" id="label-task1">
+            <input type="checkbox" id="task1" onchange="toggleTask()" disabled>
+            <div class="task-content">
+                <div class="task-title" id="task1-title">🎧 Nghe thụ động (30 Phút)</div>
+                <div class="task-desc" id="task1-desc">Đang tải nhiệm vụ...</div>
+            </div>
+        </label>
+
+        <label class="task-item disabled" id="label-task2">
+            <input type="checkbox" id="task2" onchange="toggleTask()" disabled>
+            <div class="task-content">
+                <div class="task-title" id="task2-title">📖 Học chủ động (20 Phút)</div>
+                <div class="task-desc" id="task2-desc">Đang tải nhiệm vụ...</div>
+            </div>
+        </label>
+
+        <label class="task-item disabled" id="label-task3">
+            <input type="checkbox" id="task3" onchange="toggleTask()" disabled>
+            <div class="task-content">
+                <div class="task-title" id="task3-title">✍️ Thực hành Output (10 Phút)</div>
+                <div class="task-desc" id="task3-desc">Đang tải nhiệm vụ...</div>
+            </div>
+        </label>
+    </div>
+
+    <button class="btn-main" id="btnMain" onclick="handleMainAction()">XÁC NHẬN (BẮT ĐẦU 48H)</button>
+</div>
+
+<div class="modal-overlay" id="assessmentModal">
+    <div class="modal-content">
+        <h3 id="modalTitle">KIỂM TRA TRÌNH ĐỘ</h3>
+        <p id="modalDesc">Xác nhận hoàn thành các chỉ tiêu ngôn ngữ sau:</p>
+        <ul class="test-checklist" id="modalChecklist">
+        </ul>
+        <button class="btn-pass" onclick="passAssessment()">XÁC NHẬN HOÀN TẤT CHẶNG</button>
+    </div>
+</div>
+
+<script>
+    // --- LỘ TRÌNH 12 THÁNG - TẬP TRUNG TIẾNG ANH ---
+    const roadmap = [
+        { month: 'THÁNG 1: ĐÁNH THỨC GIÁC QUAN', tasks: ['Tuần 1: 20 Nguyên âm (IPA) + Đại từ nhân xưng + To-be', 'Tuần 2: 24 Phụ âm (IPA) + Thì Hiện tại đơn', 'Tuần 3: Quy tắc nối âm cơ bản + Hiện tại tiếp diễn', 'Tuần 4: Cách đặt câu hỏi (Wh-questions) + Ôn tập'] },
+        { month: 'THÁNG 2: CHINH PHỤC PHỤ ÂM', tasks: ['Tuần 1 (T2): Phụ âm chặn (/p, b, t, d, k, g/) & Hiện tại đơn', 'Tuần 2 (T2): Phụ âm xát (/s, z, h, l, m, n, r, ng/) & Tiếp diễn', 'Tuần 3 (T2): Phụ âm khó (/th, sh, ch, j, w, y/) & Câu phủ/nghi vấn', 'Tuần 4 (T2): Ôn tập 24 phụ âm & 150 từ vựng'] },
+        { month: 'THÁNG 3: KẾT NỐI & THỜI GIAN', tasks: ['Tuần 1 (T3): Nối âm cơ bản & Quá khứ với To-be', 'Tuần 2 (T3): Quá khứ đơn (Động từ thêm -ed) & Từ để hỏi', 'Tuần 3 (T3): Tương lai (Will, Be going to) & Giới từ', 'Tuần 4 (T3): Tổng kết 3 mốc thời gian, kiểm tra 450 từ'] },
+        { month: 'THÁNG 4: KẾT NỐI ĐỐI TƯỢNG', tasks: ['Tuần 1 (T4): Mệnh đề quan hệ với "Who"', 'Tuần 2 (T4): Mệnh đề quan hệ với "Which/That"', 'Tuần 3 (T4): Mệnh đề quan hệ với "Whose" (Sở hữu)', 'Tuần 4 (T4): Ôn tập & viết đoạn văn mô tả cuộc sống hằng ngày'] },
+        { month: 'THÁNG 5: TRẠNG THÁI BỊ ĐỘNG', tasks: ['Tuần 1 (T5): Câu bị động thì Hiện tại đơn', 'Tuần 2 (T5): Câu bị động thì Quá khứ đơn', 'Tuần 3 (T5): Câu bị động với Động từ khuyết thiếu', 'Tuần 4 (T5): Nhận diện bị động trong các bản tin tiếng Anh'] },
+        { month: 'THÁNG 6: LIÊN KẾT LOGIC', tasks: ['Tuần 1 (T6): Liên từ chỉ lý do & kết quả (Because, So)', 'Tuần 2 (T6): Liên từ chỉ sự đối lập (Although, However)', 'Tuần 3 (T6): Liên từ chỉ mục đích & điều kiện', 'Tuần 4 (T6): Nghe Podcast 10p, bật sub Anh và tóm tắt lại'] },
+        { month: 'THÁNG 7: THẾ GIỚI GIẢ ĐỊNH', tasks: ['Tuần 1 (T7): Câu điều kiện Loại 0 & 1. Học 10 Idioms', 'Tuần 2 (T7): Câu điều kiện Loại 2. Học 10 Idioms thời gian', 'Tuần 3 (T7): Câu điều kiện Loại 3. Học 10 Idioms cảm xúc', 'Tuần 4 (T7): Tổng ôn các loại câu If. Dùng "Unless"'] },
+        { month: 'THÁNG 8: BẬC THẦY HÀNH ĐỘNG', tasks: ['Tuần 1 (T8): Cụm động từ với Get & Slang đường phố', 'Tuần 2 (T8): Cụm động từ với Take & Slang công việc', 'Tuần 3 (T8): Cụm động từ với Look, Go, Keep', 'Tuần 4 (T8): Phân biệt nghĩa đen/bóng của Phrasal Verbs'] },
+        { month: 'THÁNG 9: TỰ DO NGÔN NGỮ', tasks: ['Tuần 1 (T9): Xem phim sitcom Mỹ tắt sub', 'Tuần 2 (T9): Nghe Podcast khoa học không văn bản', 'Tuần 3 (T9): Xem TedTalks không phụ đề', 'Tuần 4 (T9): Quay video 2 phút nói về một chủ đề yêu thích bằng tiếng Anh'] },
+        { month: 'THÁNG 10: SẮC THÁI BIỂU CẢM', tasks: ['Tuần 1 (T10): Câu giả định: "Wish", "If only"', 'Tuần 2 (T10): Câu giả định: "Suggest that..."', 'Tuần 3 (T10): Đảo ngữ (Inversion) - Phần 1: "Never"', 'Tuần 4 (T10): Đảo ngữ (Inversion) - Phần 2: "Not only"'] },
+        { month: 'THÁNG 11: PHÁ BỎ RÀO CẢN TỐC ĐỘ', tasks: ['Tuần 1 (T11): Giọng Anh-Anh: Nghe BBC Learning English', 'Tuần 2 (T11): Nghe giọng Anh-Úc và Anh-Ấn', 'Tuần 3 (T11): Tốc độ: Nghe YouTube ở 1.25x hoặc 1.5x', 'Tuần 4 (T11): Nghe Podcast tiếng Anh trong môi trường có tiếng ồn'] },
+        { month: 'THÁNG 12: VỀ ĐÍCH', tasks: ['Tuần 1 (T12): Review 1000 từ vựng cốt lõi', 'Tuần 2 (T12): Viết kịch bản ngắn bằng tiếng Anh', 'Tuần 3 (T12): Luyện nói phản xạ: Tự tranh luận một vấn đề', 'Tuần 4 (T12): XUẤT BẢN: Thuyết trình tiếng Anh tự tin 5-10 phút'] }
+    ];
+
+    // --- STATE & VARIABLES ---
+    let state = {
+        day: parseInt(localStorage.getItem('v4_day')) || 1,        
+        week: parseInt(localStorage.getItem('v4_week')) || 1, 
+        month: parseInt(localStorage.getItem('v4_month')) || 1,
+        energy: 0
+    };
+
+    let isTimerRunning = localStorage.getItem('v4_isRunning') === 'true';
+    let targetTime = parseInt(localStorage.getItem('v4_targetTime')) || 0;
+    let isWarningActive = false;
+
+    // --- TIMER LOGIC ---
+    function updateTimer() {
+        let display = document.getElementById('timerDisplay');
+        let warning = document.getElementById('warningBox');
+
+        if (!isTimerRunning) {
+            display.innerText = "48:00:00";
+            display.style.color = "var(--primary)";
+            return;
+        }
+
+        let diff = targetTime - Date.now();
+        if (diff > 0) {
+            let h = Math.floor(diff / (1000 * 60 * 60));
+            let m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            let s = Math.floor((diff % (1000 * 60)) / 1000);
+            display.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+            display.style.color = "var(--primary)";
+        } else {
+            display.innerText = "OVERDUE";
+            display.style.color = "var(--danger)";
+            
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.disabled = true);
+            document.querySelectorAll('.task-item').forEach(item => item.classList.add('disabled'));
+
+            if (!isWarningActive) {
+                warning.style.display = "block";
+                isWarningActive = true;
+                setTimeout(() => { warning.style.display = "none"; }, 60000);
+            }
+        }
+    }
+    setInterval(updateTimer, 1000);
+
+    // --- UI LOGIC ---
+    function init() {
+        state.energy = 0;
+        [1, 2, 3].forEach(i => {
+            let cb = document.getElementById('task' + i);
+            let isChecked = localStorage.getItem('v4_task' + i) === 'true';
+            cb.checked = isChecked;
+            if(isChecked) {
+                document.getElementById('label-task' + i).classList.add('completed');
+                state.energy++;
+            }
+        });
+        
+        updateUI();
+        updateTimer();
+    }
+
+    function toggleTask() {
+        state.energy = 0;
+        [1, 2, 3].forEach(i => {
+            let cb = document.getElementById('task' + i);
+            let label = document.getElementById('label-task' + i);
+            localStorage.setItem('v4_task' + i, cb.checked);
+            
+            if(cb.checked) {
+                label.classList.add('completed');
+                state.energy++;
+            } else {
+                label.classList.remove('completed');
+            }
+        });
+        updateUI();
+    }
+
+    function updateUI() {
+        document.getElementById('lblDay').innerText = state.day;
+        document.getElementById('lblWeek').innerText = state.week;
+        
+        let energyPct = (state.energy / 3) * 100;
+        document.getElementById('lblEnergy').innerText = Math.round(energyPct) + '%';
+        document.getElementById('barEnergy').style.width = energyPct + '%';
+        document.getElementById('barWeek').style.width = (state.day / 7 * 100) + '%';
+        document.getElementById('barMonth').style.width = (state.week / 4 * 100) + '%';
+
+        let currentMonthData = roadmap[state.month - 1]; 
+        let currentWeekContent = currentMonthData.tasks[state.week - 1]; 
+        let weeklyTopic = currentWeekContent.includes(':') ? currentWeekContent.split(':')[1].trim() : currentWeekContent;
+
+        document.getElementById('dispMonthTitle').innerText = currentMonthData.month;
+        document.getElementById('dispWeekContent').innerText = currentWeekContent;
+
+        // XUẤT NỘI DUNG ĐỘNG CHO 3 NHIỆM VỤ NGÀY
+        document.getElementById('task1-desc').innerText = `Nghe Podcast hoặc bản tin Tiếng Anh. Tập trung vào âm điệu của: ${weeklyTopic}.`;
+
+        let t2Title = "📖 Học chủ động (20 Phút)";
+        let t2Desc = "";
+        let t3Title = "✍️ Thực hành Output (10 Phút)";
+        let t3Desc = "";
+
+        if (state.day <= 5) {
+            t2Desc = `Học 5-7 từ vựng & lý thuyết: ${weeklyTopic} (P.${state.day}/5). Tập phát âm chuẩn.`;
+            t3Desc = `Đặt 3 câu tiếng Anh ứng dụng ngữ pháp ngày hôm nay vào thực tế đời sống.`;
+        } else if (state.day === 6) {
+            t2Title = "🔄 Tổng Ôn Tập (20 Phút)";
+            t2Desc = `Rà soát lại toàn bộ từ vựng và cấu trúc của ${weeklyTopic} đã học trong tuần.`;
+            t3Title = "🧹 Hệ thống ghi chú (10 Phút)";
+            t3Desc = `Sắp xếp lại ghi chú trên S23 Ultra. Đọc lại các câu đã viết trong tuần.`;
+        } else {
+            t2Title = "🎯 Trạm Sát Hạch (20 Phút)";
+            t2Desc = `Hệ thống lại toàn bộ kiến thức để chuẩn bị thực hiện bài kiểm tra cuối tuần.`;
+            t3Title = "🎉 Thư giãn não bộ (10 Phút)";
+            t3Desc = `Xem 1 video hài hoặc nhạc tiếng Anh (không sub) để cảm nhận ngôn ngữ tự nhiên.`;
+        }
+
+        document.getElementById('task2-title').innerText = t2Title;
+        document.getElementById('task2-desc').innerText = t2Desc;
+        document.getElementById('task3-title').innerText = t3Title;
+        document.getElementById('task3-desc').innerText = t3Desc;
+
+        let btn = document.getElementById('btnMain');
+        let taskItems = document.querySelectorAll('.task-item');
+        let checkboxes = document.querySelectorAll('input[type="checkbox"]');
+
+        if (!isTimerRunning) {
+            btn.innerText = "KÍCH HOẠT NHIỆM VỤ (48H)";
+            btn.disabled = false;
+            btn.classList.add('ready');
+            taskItems.forEach(item => item.classList.add('disabled'));
+            checkboxes.forEach(cb => cb.disabled = true);
+        } else {
+            btn.innerText = "XÁC NHẬN HOÀN THÀNH NGÀY";
+            if (targetTime - Date.now() > 0) {
+                taskItems.forEach(item => item.classList.remove('disabled'));
+                checkboxes.forEach(cb => cb.disabled = false);
+            }
+            if (state.energy === 3) {
+                btn.disabled = false;
+                btn.classList.add('ready');
+            } else {
+                btn.disabled = true;
+                btn.classList.remove('ready');
+            }
+        }
+    }
+
+    function handleMainAction() {
+        if (!isTimerRunning) {
+            isTimerRunning = true;
+            localStorage.setItem('v4_isRunning', 'true');
+            targetTime = Date.now() + (48 * 60 * 60 * 1000);
+            localStorage.setItem('v4_targetTime', targetTime);
+            updateUI();
+            updateTimer();
+        } else {
+            if (state.energy === 3) {
+                tryFinishDay();
+            }
+        }
+    }
+
+    function tryFinishDay() {
+        if (state.day === 7) {
+            let modal = document.getElementById('assessmentModal');
+            let checklist = document.getElementById('modalChecklist');
+            if (state.week === 4) {
+                checklist.innerHTML = `
+                    <li>Đã thuộc 150 từ vựng cốt lõi của tháng?</li>
+                    <li>Nắm vững toàn bộ ngữ pháp trọng tâm tháng này?</li>
+                    <li>Đã nghe hiểu ít nhất 50% nội dung podcast không sub?</li>`;
+            } else {
+                checklist.innerHTML = `
+                    <li>Đã thuộc 35 từ vựng của tuần này?</li>
+                    <li>Đã tự viết được ít nhất 10 câu đúng ngữ pháp?</li>
+                    <li>Đã ghi âm và nghe lại giọng đọc của mình?</li>`;
+            }
+            modal.style.display = "flex";
+        } else {
+            executeNextDay();
+        }
+    }
+
+    function passAssessment() {
+        document.getElementById('assessmentModal').style.display = "none";
+        executeNextDay();
+    }
+
+    function executeNextDay() {
+        isTimerRunning = false;
+        localStorage.setItem('v4_isRunning', 'false');
+        isWarningActive = false;
+        document.getElementById('warningBox').style.display = "none";
+        [1, 2, 3].forEach(i => {
+            document.getElementById('task' + i).checked = false;
+            document.getElementById('label-task' + i).classList.remove('completed');
+            localStorage.setItem('v4_task' + i, 'false');
+        });
+        state.energy = 0;
+        state.day++;
+        if (state.day > 7) {
+            state.day = 1; 
+            state.week++;  
+            if (state.week > 4) {
+                state.week = 1; 
+                state.month++;  
+                if(state.month > 12) state.month = 12; 
+            }
+        }
+        localStorage.setItem('v4_day', state.day);
+        localStorage.setItem('v4_week', state.week);
+        localStorage.setItem('v4_month', state.month);
+        updateUI(); 
+        window.scrollTo(0, 0);
+    }
+
+    window.onload = init;
+</script>
+</body>
+</html>

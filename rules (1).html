@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>GOLDEN ENGLISH DRAGON</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark-bg: #000000;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark-bg);
+            color: var(--gold);
+            font-family: 'Segoe UI', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        /* Dòng chữ chào mừng chạy chậm */
+        .header-marquee {
+            width: 100%;
+            border-bottom: 1px solid var(--gold);
+            background: rgba(212, 175, 55, 0.1);
+            padding: 12px 0;
+            overflow: hidden;
+        }
+
+        .marquee-content {
+            white-space: nowrap;
+            display: inline-block;
+            animation: marquee-slow 25s linear infinite;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            font-weight: bold;
+        }
+
+        @keyframes marquee-slow {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Khu vực quay số tối ưu mobile */
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin: 40px 0;
+            width: 100%;
+        }
+
+        .slot {
+            width: 25vw;
+            max-width: 90px;
+            height: 120px;
+            border: 3px solid var(--gold);
+            background: linear-gradient(180deg, #1a1a1a 0%, #000 50%, #1a1a1a 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4rem;
+            font-weight: 900;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.3);
+            text-shadow: 0 0 10px var(--gold);
+        }
+
+        /* Chỉ số Coin & Points */
+        .stats-container {
+            display: flex;
+            width: 90%;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            flex: 1;
+            border: 1px solid var(--gold);
+            padding: 15px 5px;
+            text-align: center;
+            border-radius: 10px;
+            background: rgba(212, 175, 55, 0.05);
+        }
+
+        .stat-label { font-size: 0.65rem; margin-bottom: 5px; opacity: 0.8; }
+        .stat-value { font-size: 1.4rem; font-weight: bold; color: #fff; }
+
+        /* Nút bấm duy nhất */
+        .action-area { width: 90%; }
+        
+        .btn-spin {
+            width: 100%;
+            padding: 20px;
+            border: 2px solid var(--gold);
+            background: var(--gold);
+            color: #000;
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            border-radius: 15px;
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.4);
+            cursor: pointer;
+        }
+
+        .btn-spin:disabled { 
+            background: transparent; 
+            color: var(--gold); 
+            opacity: 0.4;
+            box-shadow: none;
+        }
+
+        /* Ô kết quả dưới cùng */
+        #main-display {
+            flex-grow: 1;
+            width: 90%;
+            margin: 30px 0;
+            border: 1px dashed var(--gold);
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+            background: rgba(212, 175, 55, 0.02);
+        }
+
+        .result-title { font-size: 1.2rem; margin-bottom: 10px; color: var(--gold); }
+        .result-content { font-size: 1.5rem; font-weight: bold; color: #fff; }
+        .processing { letter-spacing: 8px; animation: blink 1s infinite; }
+
+        @keyframes blink { 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body>
+
+    <div class="header-marquee">
+        <div class="marquee-content">
+            Welcome back, Sir. Wishing you all the best and a successful day ahead. 
+            Stay focused, stay strong.
+        </div>
+    </div>
+
+    <div class="slot-machine">
+        <div class="slot" id="s1">0</div>
+        <div class="slot" id="s2">0</div>
+        <div class="slot" id="s3">0</div>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-label">COINS AVAILABLE</div>
+            <div class="stat-value" id="coin-count">10</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">ENGLISH POINTS</div>
+            <div class="stat-value" id="english-points">0</div>
+        </div>
+    </div>
+
+    <div class="action-area">
+        <button class="btn-spin" id="spin-btn" onclick="startSpin()">EXECUTE SPIN</button>
+    </div>
+
+    <div id="main-display">
+        <div class="result-title">SYSTEM STATUS</div>
+        <div class="result-content">READY FOR COMMAND</div>
+    </div>
+
+    <script>
+        // Khởi tạo giá trị mặc định (Sau này sẽ link với app khác)
+        let coins = 10; 
+        let points = 0;
+        const spinBtn = document.getElementById('spin-btn');
+        const display = document.getElementById('main-display');
+
+        function updateUI() {
+            document.getElementById('coin-count').innerText = coins;
+            document.getElementById('english-points').innerText = points;
+            spinBtn.disabled = (coins <= 0);
+        }
+
+        function startSpin() {
+            if (coins <= 0) return;
+            
+            coins--;
+            updateUI();
+            spinBtn.disabled = true;
+
+            // Hiển thị trạng thái đang xử lý
+            display.innerHTML = `
+                <div class="result-title">SYSTEM STATUS</div>
+                <div class="result-content processing">PROCESSING...</div>
+            `;
+
+            const s1 = document.getElementById('s1');
+            const s2 = document.getElementById('s2');
+            const s3 = document.getElementById('s3');
+
+            // Hiệu ứng quay số nhảy liên tục
+            let i1 = setInterval(() => s1.innerText = Math.floor(Math.random()*10), 80);
+            let i2 = setInterval(() => s2.innerText = Math.floor(Math.random()*10), 80);
+            let i3 = setInterval(() => s3.innerText = Math.floor(Math.random()*10), 80);
+
+            // Trình tự dừng chính xác theo giây anh yêu cầu
+            setTimeout(() => clearInterval(i1), 3000); // Ô 1 dừng sau 3s
+            setTimeout(() => clearInterval(i2), 7000); // Ô 2 dừng sau 4s nữa (tổng 7s)
+            setTimeout(() => {
+                clearInterval(i3); // Ô 3 dừng sau 5s nữa (tổng 12s)
+                finishSpin([s1.innerText, s2.innerText, s3.innerText]);
+            }, 12000);
+        }
+
+        function finishSpin(results) {
+            const combo = results.join('');
+            const specialWins = ['012', '123', '345', '456', '789'];
+            let winAmount = 0;
+            let rewardText = "";
+            let category = "REWARD GRANTED";
+
+            // 1. Kiểm tra các bộ số thắng điểm
+            if (combo === '888') {
+                winAmount = 1000;
+                rewardText = "JACKPOT! +1000 ENGLISH POINTS";
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#d4af37', '#ffffff'] });
+            } else if (specialWins.includes(combo)) {
+                winAmount = 100;
+                rewardText = "SPECIAL SEQUENCE! +100 POINTS";
+            } else if (/^(\d)\1\1$/.test(combo)) {
+                winAmount = 50;
+                rewardText = "TRIPLE MATCH! +50 POINTS";
+            } else {
+                // 2. Tỷ lệ 20% Thử thách, 80% Giải trí tự do
+                let rand = Math.random() * 100;
+                if (rand < 20) {
+                    category = "PHYSICAL CHALLENGE";
+                    const moves = ["15 PUSH-UPS", "20 SQUATS", "30s PLANK", "10 BURPEES"];
+                    rewardText = moves[Math.floor(Math.random()*moves.length)];
+                } else {
+                    category = "ENTERTAINMENT AUTHORIZED";
+                    const entertainments = [
+                        "LISTEN TO 1 FAVORITE SONG",
+                        "30 MINUTES FREE PHONE USE",
+                        "20 MINUTES FREE PHONE USE",
+                        "10 MINUTES FREE PHONE USE"
+                    ];
+                    rewardText = entertainments[Math.floor(Math.random()*entertainments.length)];
+                }
+            }
+
+            points += winAmount;
+            
+            // Hiển thị kết quả cuối cùng
+            display.innerHTML = `
+                <div class="result-title">${category}</div>
+                <div class="result-content">${rewardText}</div>
+            `;
+
+            updateUI();
+            if (coins > 0) spinBtn.disabled = false;
+        }
+
+        // Cập nhật giao diện ban đầu
+        updateUI();
+    </script>
+</body>
+</html>

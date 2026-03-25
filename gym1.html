@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Strategic Command - Thành</title>
+    <style>
+        :root {
+            --bg: #020202;        
+            --surface: #0a0a0a;   
+            --primary: #00d2ff;   /* Xanh công nghệ giống bản Blender */
+            --accent: #39ff14;    /* Xanh neon thành công */
+            --danger: #ff003c;    
+            --text: #00d2ff;      
+            --text-dim: #004455;  
+            --border-radius: 2px;
+        }
+
+        body {
+            font-family: 'Courier New', Courier, monospace;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0; padding: 15px;
+            display: flex; justify-content: center;
+        }
+
+        .app-container {
+            max-width: 500px; width: 100%;
+            background: var(--surface);
+            padding: 20px; border-radius: var(--border-radius);
+            border: 1px solid var(--primary);
+            box-shadow: 0 0 20px rgba(0, 210, 255, 0.15);
+        }
+
+        .header { text-align: center; border-bottom: 1px solid var(--primary); padding-bottom: 15px; margin-bottom: 20px; }
+        h2 { margin: 0; color: var(--primary); text-transform: uppercase; letter-spacing: 4px; font-size: 1.2rem; text-shadow: 0 0 8px var(--primary); }
+
+        /* Bảng Chỉ Thị */
+        .mission-box {
+            background: #050a0a; border: 1px solid var(--primary);
+            border-left: 6px solid var(--primary); padding: 15px; margin-bottom: 20px;
+        }
+
+        .mission-month { font-size: 0.8rem; color: var(--primary); text-transform: uppercase; font-weight: bold; margin-bottom: 5px; opacity: 0.8; }
+        .mission-week-content { font-size: 1.05rem; color: #fff; font-weight: bold; line-height: 1.4; }
+
+        /* Đồng hồ 48H */
+        .countdown-box { text-align: center; background: #000; border: 1px solid var(--primary); padding: 15px; margin-bottom: 20px; }
+        .countdown-timer { font-size: 2.8rem; font-weight: bold; color: var(--primary); letter-spacing: 4px; text-shadow: 0 0 15px var(--primary); }
+
+        /* Thanh Tiến Độ */
+        .progress-label { display: flex; justify-content: space-between; font-size: 0.7rem; margin-bottom: 6px; font-weight: bold; text-transform: uppercase; }
+        .progress-bar-bg { background: #001a1a; height: 4px; width: 100%; margin-bottom: 15px; border: 1px solid var(--text-dim); }
+        .progress-bar-fill { height: 100%; width: 0%; background: var(--primary); box-shadow: 0 0 10px var(--primary); transition: width 0.6s ease; }
+
+        /* Nhiệm Vụ */
+        .task-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .task-item { background-color: #000; padding: 12px; border: 1px solid var(--text-dim); display: flex; align-items: flex-start; gap: 12px; cursor: pointer; transition: 0.2s; }
+        .task-item.disabled { opacity: 0.15; cursor: not-allowed; pointer-events: none; }
+        .task-item.completed { border-color: var(--accent); background: #021a02; }
+        .task-item.completed .task-desc { color: #008800; text-decoration: line-through; }
+
+        input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; margin-top: 2px; }
+        .task-title { font-weight: bold; color: var(--primary); margin-bottom: 4px; font-size: 0.9rem; text-transform: uppercase; }
+        .task-desc { font-size: 0.85rem; color: #ccc; line-height: 1.4; }
+
+        /* Nút Bấm Tối Giản */
+        .btn-main { background-color: transparent; color: var(--text-dim); border: 1px solid var(--text-dim); padding: 18px; width: 100%; font-size: 1.2rem; font-family: 'Courier New', Courier, monospace; font-weight: bold; cursor: not-allowed; text-transform: uppercase; transition: 0.3s; letter-spacing: 10px; }
+        .btn-main.ready { border-color: var(--primary); color: var(--primary); cursor: pointer; box-shadow: 0 0 15px rgba(0, 210, 255, 0.2); }
+        .btn-main.ready:hover { background-color: var(--primary); color: #000; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 1000; justify-content: center; align-items: center; }
+        .modal-content { background: #000; padding: 25px; border: 1px solid var(--accent); width: 85%; max-width: 380px; text-align: center; box-shadow: 0 0 30px rgba(57, 255, 20, 0.2); }
+        .modal-content h3 { color: var(--accent); margin-top: 0; letter-spacing: 2px; }
+        .btn-pass { background: transparent; color: var(--accent); border: 1px solid var(--accent); padding: 14px; cursor: pointer; width: 100%; font-family: 'Courier New', Courier, monospace; font-weight: bold; text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <div class="header"><h2>GYM STRATEGIC COMMAND</h2></div>
+
+    <div class="mission-box">
+        <div class="mission-month" id="dispMonthTitle">DỮ LIỆU ĐANG TẢI...</div>
+        <div class="mission-week-content" id="dispWeekContent">Vui lòng chờ hệ thống...</div>
+    </div>
+
+    <div class="countdown-box">
+        <div style="font-size: 0.65rem; color: var(--text-dim); margin-bottom: 5px; font-weight: bold;">RECOVERY WINDOW (48H)</div>
+        <div class="countdown-timer" id="timerDisplay">48:00:00</div>
+    </div>
+
+    <div class="progress-label"><span>Cường độ buổi tập</span> <span id="lblEnergy">0%</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="barEnergy"></div></div>
+
+    <div class="progress-label"><span>Tiến độ Tháng (Tuần <span id="lblWeekDisp">1</span>/4)</span></div>
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="barMonth"></div></div>
+
+    <div class="task-list" id="taskListContainer">
+        </div>
+
+    <button class="btn-main" id="btnMain" onclick="handleMainAction()">BẮT ĐẦU</button>
+</div>
+
+<div class="modal-overlay" id="assessmentModal">
+    <div class="modal-content">
+        <h3>XÁC NHẬN HOÀN TẤT</h3>
+        <p style="font-size: 0.8rem; color: #fff;">Hệ thống ghi nhận cơ bắp đã được kích thích. Sẵn sàng cho chu kỳ phục hồi 48H?</p>
+        <button class="btn-pass" onclick="passAssessment()">XÁC NHẬN</button>
+    </div>
+</div>
+
+<script>
+    // LỘ TRÌNH 12 THÁNG DÀNH CHO ANH THÀNH (37 TUỔI)
+    const roadmap = [
+        { month: 'THÁNG 1: THÍCH NGHI & FORM', goal: 'Làm quen mức tạ 40kg và kỹ thuật chuẩn.' },
+        { month: 'THÁNG 2: SỨC BỀN CƠ BẮP', goal: 'Tăng số lần lặp (reps) và kiểm soát nhịp thở.' },
+        { month: 'THÁNG 3: SỨC MẠNH TẠ NẶNG', goal: 'Bùng nổ với các bài Compound (tạ đơn/xà đơn).' },
+        { month: 'THÁNG 4: PHÁT TRIỂN LƯNG XÔ', goal: 'Ưu tiên độ dày lưng với Pull-ups và Rows.' },
+        { month: 'THÁNG 5: KIẾN TẠO CƠ NGỰC', goal: 'Floor Press và Push-up biến thể để cắt nét.' },
+        { month: 'THÁNG 6: SỨC MẠNH ĐÔI CHÂN', goal: 'Nâng cao giới hạn với Squat và Lunges.' },
+        { month: 'THÁNG 7: VAI CHIẾN BINH', tasks: 'Đẩy tạ qua đầu và Lateral Raises.' },
+        { month: 'THÁNG 8: TỐI ƯU CƠ LÕI (CORE)', goal: 'Plank và Leg Raises nâng cao bảo vệ cột sống.' },
+        { month: 'THÁNG 9: HYPERTROPHY (TĂNG CƠ)', goal: 'Tập chậm (Tempo 3-1-1) để xé sợi cơ.' },
+        { month: 'THÁNG 10: SỨC MẠNH DÂY KHÁNG LỰC', goal: 'Kết hợp dây kháng lực tạo áp lực liên tục.' },
+        { month: 'THÁNG 11: ĐỊNH HÌNH THỂ HÌNH', goal: 'Tập trung các nhóm cơ nhỏ và độ nét.' },
+        { month: 'THÁNG 12: ĐỈNH CAO PHONG ĐỘ', goal: 'Duy trì khối lượng và kiểm tra sức mạnh tổng.' }
+    ];
+
+    let state = {
+        day: parseInt(localStorage.getItem('gym_day')) || 1, // Buổi 1, 2, 3 trong tuần
+        week: parseInt(localStorage.getItem('gym_week')) || 1, // Tuần 1, 2, 3, 4 trong tháng
+        month: parseInt(localStorage.getItem('gym_month')) || 1,
+        isRunning: localStorage.getItem('gym_isRunning') === 'true',
+        targetTime: parseInt(localStorage.getItem('gym_targetTime')) || 0
+    };
+
+    function updateUI() {
+        const curMonth = roadmap[state.month - 1];
+        document.getElementById('dispMonthTitle').innerText = `${curMonth.month} - TUẦN ${state.week}`;
+        document.getElementById('dispWeekContent').innerText = curMonth.goal || "PHÁT TRIỂN TOÀN DIỆN";
+        document.getElementById('lblWeekDisp').innerText = state.week;
+
+        const container = document.getElementById('taskListContainer');
+        container.innerHTML = '';
+
+        let tasks = [];
+        // Buổi 1: Dụng cụ (Tạ 40kg, Xà đơn)
+        if (state.day === 1) {
+            tasks = [
+                { t: "GOBLET SQUAT (TẠ 40KG)", d: "Cầm tạ đơn trước ngực. 3 hiệp x 10-12 lần." },
+                { t: "HÍT XÀ ĐƠN (PULL-UPS)", d: "Kéo tối đa số lần. 3 hiệp. Nghỉ 90s." },
+                { t: "DUMBBELL FLOOR PRESS", d: "Nằm sàn đẩy đôi tạ 40kg. 3 hiệp x 10 lần." }
+            ];
+        } 
+        // Buổi 2 & 3: Tại chỗ (Bodyweight)
+        else {
+            const isDay2 = state.day === 2;
+            tasks = [
+                { t: isDay2 ? "BULGARIAN SPLIT SQUAT" : "WALKING LUNGES", d: isDay2 ? "Chân gác ghế. 12 lần/bên." : "Bước chùng chân. 20 bước/hiệp." },
+                { t: isDay2 ? "DIAMOND PUSH-UPS" : "PIKE PUSH-UPS", d: isDay2 ? "Hít đất tay hẹp tập tay sau." : "Hít đất chữ V tập vai." },
+                { t: isDay2 ? "PLANK" : "LEG RAISES", d: isDay2 ? "Giữ thẳng người 60 giây." : "Nằm nâng chân tập bụng dưới." }
+            ];
+        }
+
+        tasks.forEach((task, i) => {
+            const isDone = localStorage.getItem(`gym_task_${i}`) === 'true';
+            const item = document.createElement('label');
+            item.className = `task-item ${isDone ? 'completed' : ''} ${!state.isRunning ? 'disabled' : ''}`;
+            item.innerHTML = `
+                <input type="checkbox" id="t${i}" ${isDone ? 'checked' : ''} onchange="toggleTask(${i})" ${!state.isRunning ? 'disabled' : ''}>
+                <div class="task-content">
+                    <div class="task-title">${task.t}</div>
+                    <div class="task-desc">${task.d}</div>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+
+        let doneCount = [0, 1, 2].filter(i => localStorage.getItem(`gym_task_${i}`) === 'true').length;
+        let energyPct = (doneCount / 3) * 100;
+        document.getElementById('lblEnergy').innerText = Math.round(energyPct) + '%';
+        document.getElementById('barEnergy').style.width = energyPct + '%';
+        document.getElementById('barMonth').style.width = (state.week / 4 * 100) + '%';
+
+        const btn = document.getElementById('btnMain');
+        if (!state.isRunning) {
+            btn.classList.add('ready');
+        } else {
+            if (doneCount === 3) btn.classList.add('ready'); else btn.classList.remove('ready');
+        }
+    }
+
+    function handleMainAction() {
+        if (!state.isRunning) {
+            state.isRunning = true;
+            state.targetTime = Date.now() + (48 * 3600000); // 48H Recovery
+            localStorage.setItem('gym_isRunning', 'true');
+            localStorage.setItem('gym_targetTime', state.targetTime);
+            updateUI();
+        } else {
+            let doneCount = [0, 1, 2].filter(i => localStorage.getItem(`gym_task_${i}`) === 'true').length;
+            if (doneCount === 3) document.getElementById('assessmentModal').style.display = "flex";
+        }
+    }
+
+    function toggleTask(i) {
+        const cb = document.getElementById(`t${i}`);
+        localStorage.setItem(`gym_task_${i}`, cb.checked);
+        updateUI();
+    }
+
+    function passAssessment() {
+        state.isRunning = false;
+        localStorage.setItem('gym_isRunning', 'false');
+        [0, 1, 2].forEach(i => localStorage.setItem(`gym_task_${i}`, 'false'));
+        
+        state.day++;
+        if (state.day > 3) { // 1 tuần 3 buổi
+            state.day = 1;
+            state.week++;
+        }
+        if (state.week > 4) { // 1 tháng 4 tuần
+            state.week = 1;
+            state.month++;
+            if (state.month > 12) state.month = 1;
+        }
+
+        localStorage.setItem('gym_day', state.day);
+        localStorage.setItem('gym_week', state.week);
+        localStorage.setItem('gym_month', state.month);
+        document.getElementById('assessmentModal').style.display = "none";
+        updateUI();
+    }
+
+    setInterval(() => {
+        const display = document.getElementById('timerDisplay');
+        if (!state.isRunning) { display.innerText = "48:00:00"; return; }
+        let diff = state.targetTime - Date.now();
+        if (diff > 0) {
+            let h = Math.floor(diff / 3600000), m = Math.floor((diff % 3600000) / 60000), s = Math.floor((diff % 60000) / 1000);
+            display.innerText = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+        } else { display.innerText = "READY"; }
+    }, 1000);
+
+    window.onload = updateUI;
+</script>
+</body>
+</html>
